@@ -6,14 +6,16 @@
       <field name="arch" type="xml">
         <notebook position="inside">
           <page string="Piezas físicas">
-            <field name="total_m2_disponibles" readonly="1"/>
+            <group>
+              <field name="total_m2_disponibles" readonly="1"/>
+            </group>
             <field name="pieza_ids">
-              <tree editable="bottom">
+              <list editable="bottom">
                 <field name="codigo_unico"/>
                 <field name="area_m2"/>
                 <field name="ubicacion_id"/>
                 <field name="estado_operativo"/>
-              </tree>
+              </list>
             </field>
           </page>
         </notebook>

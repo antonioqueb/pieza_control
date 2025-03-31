@@ -2,6 +2,7 @@
     <record id="view_stock_pieza_form" model="ir.ui.view">
       <field name="name">stock.pieza.form</field>
       <field name="model">stock.pieza</field>
+      <field name="type">form</field>
       <field name="arch" type="xml">
         <form string="Pieza">
           <group>
@@ -30,28 +31,31 @@
       </field>
     </record>
   
-    <record id="view_stock_pieza_tree" model="ir.ui.view">
-      <field name="name">stock.pieza.tree</field>
+    <record id="view_stock_pieza_list" model="ir.ui.view">
+      <field name="name">stock.pieza.list</field>
       <field name="model">stock.pieza</field>
+      <field name="type">list</field>
       <field name="arch" type="xml">
-        <tree string="Piezas">
+        <list string="Piezas">
           <field name="codigo_unico"/>
           <field name="product_id"/>
           <field name="tipo_material"/>
           <field name="area_m2"/>
           <field name="ubicacion_id"/>
           <field name="estado_operativo"/>
-        </tree>
+        </list>
       </field>
+    </record>
+
+    <record id="action_stock_pieza" model="ir.actions.act_window">
+        <field name="name">Piezas</field>
+        <field name="res_model">stock.pieza</field>
+        <field name="view_mode">list,form</field>
     </record>
   
     <menuitem id="menu_stock_pieza_root" name="Piezas Físicas" parent="stock.menu_stock_root"/>
     <menuitem id="menu_stock_pieza" name="Piezas" parent="menu_stock_pieza_root" action="action_stock_pieza"/>
   
-    <record id="action_stock_pieza" model="ir.actions.act_window">
-      <field name="name">Piezas</field>
-      <field name="res_model">stock.pieza</field>
-      <field name="view_mode">tree,form</field>
-    </record>
+
   </odoo>
   
