@@ -81,7 +81,7 @@ class StockPieza(models.Model):
                 'move_id': move.id,
                 'product_id': pieza.product_id.id,
                 'product_uom_id': pieza.product_id.uom_id.id,
-                'qty_done': 1,
+                'quantity': 1,
                 'location_id': self.env.ref('stock.stock_location_suppliers').id,
                 'location_dest_id': pieza.ubicacion_id.id,
                 'lot_id': pieza.lote_id.id,
