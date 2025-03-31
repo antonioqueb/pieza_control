@@ -62,7 +62,7 @@ class StockPieza(models.Model):
         pieza = super(StockPieza, self).create(vals)
 
         if pieza.estado_operativo == 'disponible':
-            picking_type = self.env.ref('stock.picking_type_in')  # Recepción
+            picking_type = self.env.ref('stock.picking_type_in')
             supplier_location = self.env.ref('stock.stock_location_suppliers')
             dest_location = pieza.ubicacion_id
 
@@ -85,21 +85,21 @@ class StockPieza(models.Model):
                 'location_dest_id': dest_location.id,
             })
 
-            # Confirmar picking y asignar
-            picking.action_confirm()
-            picking.action_assign()
-
-            # Crear línea de movimiento (con lote)
+            # Crear línea de movimiento (con lote) *ANTES* de confirmar
             self.env['stock.move.line'].sudo().create({
                 'move_id': move.id,
                 'picking_id': picking.id,
                 'product_id': pieza.product_id.id,
                 'product_uom_id': pieza.product_id.uom_id.id,
                 'quantity': 1,
+                'lot_id': pieza.lote_id.id,
                 'location_id': supplier_location.id,
                 'location_dest_id': dest_location.id,
-                'lot_id': pieza.lote_id.id,
             })
+
+            # Confirmar y asignar
+            picking.action_confirm()
+            picking.action_assign()
 
             # Validar la recepción
             picking.button_validate()
