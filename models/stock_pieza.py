@@ -1,14 +1,17 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError
 
 class StockPieza(models.Model):
     _name = 'stock.pieza'
     _description = 'Unidad Física de Producto'
     _order = 'codigo_unico'
 
-    codigo_sistema = fields.Char(string="Código Interno", required=True, copy=False, readonly=True,
-                                 default=lambda self: self.env['ir.sequence'].next_by_code('stock.pieza'))
+    codigo_sistema = fields.Char(
+        string="Código Interno", required=True, copy=False, readonly=True,
+        default=lambda self: self.env['ir.sequence'].next_by_code('stock.pieza')
+    )
     lote_id = fields.Many2one('stock.lot', string="Lote", required=True)
-    codigo_consecutivo = fields.Integer(string="Consecutivo", required=True)
+    codigo_consecutivo = fields.Integer(string="Consecutivo", readonly=True)
     codigo_unico = fields.Char(string="Código Único", compute='_compute_codigo_unico', store=True, readonly=True)
 
     product_id = fields.Many2one('product.product', string="Producto", required=True, ondelete="cascade")
@@ -48,3 +51,29 @@ class StockPieza(models.Model):
     def _compute_area(self):
         for rec in self:
             rec.area_m2 = rec.alto * rec.ancho
+
+    @api.model
+    def create(self, vals):
+        # Asignar consecutivo automático por lote
+        if 'lote_id' in vals:
+            existing = self.search([('lote_id', '=', vals['lote_id'])])
+            vals['codigo_consecutivo'] = len(existing) + 1
+
+        pieza = super(StockPieza, self).create(vals)
+
+        # Generar movimiento de inventario si está disponible
+        if pieza.estado_operativo == 'disponible':
+            self.env['stock.move'].sudo().create({
+                'name': f"Entrada automática - {pieza.codigo_unico}",
+                'product_id': pieza.product_id.id,
+                'product_uom_qty': 1,
+                'product_uom': pieza.product_id.uom_id.id,
+                'location_id': self.env.ref('stock.stock_location_suppliers').id,
+                'location_dest_id': pieza.ubicacion_id.id,
+                'state': 'done',
+                'origin': f'Creación Pieza {pieza.codigo_unico}',
+                'picking_type_id': self.env.ref('stock.picking_type_in').id,
+                'lot_id': pieza.lote_id.id,
+            })
+
+        return pieza
