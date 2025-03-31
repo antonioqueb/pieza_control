@@ -61,19 +61,32 @@ class StockPieza(models.Model):
 
         pieza = super(StockPieza, self).create(vals)
 
-        # Generar movimiento de inventario si está disponible
         if pieza.estado_operativo == 'disponible':
-            self.env['stock.move'].sudo().create({
+            move = self.env['stock.move'].sudo().create({
                 'name': f"Entrada automática - {pieza.codigo_unico}",
                 'product_id': pieza.product_id.id,
                 'product_uom_qty': 1,
                 'product_uom': pieza.product_id.uom_id.id,
                 'location_id': self.env.ref('stock.stock_location_suppliers').id,
                 'location_dest_id': pieza.ubicacion_id.id,
-                'state': 'done',
+                'state': 'confirmed',
                 'origin': f'Creación Pieza {pieza.codigo_unico}',
                 'picking_type_id': self.env.ref('stock.picking_type_in').id,
+            })
+
+            move._action_confirm()
+            move._action_assign()
+
+            self.env['stock.move.line'].sudo().create({
+                'move_id': move.id,
+                'product_id': pieza.product_id.id,
+                'product_uom_id': pieza.product_id.uom_id.id,
+                'qty_done': 1,
+                'location_id': self.env.ref('stock.stock_location_suppliers').id,
+                'location_dest_id': pieza.ubicacion_id.id,
                 'lot_id': pieza.lote_id.id,
             })
+
+            move._action_done()
 
         return pieza
