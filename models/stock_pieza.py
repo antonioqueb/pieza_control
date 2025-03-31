@@ -62,31 +62,47 @@ class StockPieza(models.Model):
         pieza = super(StockPieza, self).create(vals)
 
         if pieza.estado_operativo == 'disponible':
+            picking_type = self.env.ref('stock.picking_type_in')  # Recepción
+            supplier_location = self.env.ref('stock.stock_location_suppliers')
+            dest_location = pieza.ubicacion_id
+
+            # Crear operación de recepción (picking)
+            picking = self.env['stock.picking'].sudo().create({
+                'picking_type_id': picking_type.id,
+                'location_id': supplier_location.id,
+                'location_dest_id': dest_location.id,
+                'origin': f'AutoEntrada-{pieza.codigo_unico}',
+            })
+
+            # Crear movimiento dentro del picking
             move = self.env['stock.move'].sudo().create({
-                'name': f"Entrada automática - {pieza.codigo_unico}",
+                'name': f"Entrada pieza {pieza.codigo_unico}",
+                'picking_id': picking.id,
                 'product_id': pieza.product_id.id,
                 'product_uom_qty': 1,
                 'product_uom': pieza.product_id.uom_id.id,
-                'location_id': self.env.ref('stock.stock_location_suppliers').id,
-                'location_dest_id': pieza.ubicacion_id.id,
-                'state': 'confirmed',
-                'origin': f'Creación Pieza {pieza.codigo_unico}',
-                'picking_type_id': self.env.ref('stock.picking_type_in').id,
+                'location_id': supplier_location.id,
+                'location_dest_id': dest_location.id,
             })
 
-            move._action_confirm()
-            move._action_assign()
+            # Confirmar picking y asignar
+            picking.action_confirm()
+            picking.action_assign()
 
+            # Crear línea de movimiento (con lote)
             self.env['stock.move.line'].sudo().create({
                 'move_id': move.id,
+                'picking_id': picking.id,
                 'product_id': pieza.product_id.id,
                 'product_uom_id': pieza.product_id.uom_id.id,
                 'quantity': 1,
-                'location_id': self.env.ref('stock.stock_location_suppliers').id,
-                'location_dest_id': pieza.ubicacion_id.id,
+                'location_id': supplier_location.id,
+                'location_dest_id': dest_location.id,
                 'lot_id': pieza.lote_id.id,
             })
 
-            move._action_done()
+            # Validar la recepción
+            picking.button_validate()
 
         return pieza
+
