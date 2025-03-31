@@ -1,0 +1,23 @@
+<odoo>
+    <record id="product_product_form_inherit_piezas" model="ir.ui.view">
+      <field name="name">product.product.form.inherit.piezas</field>
+      <field name="model">product.product</field>
+      <field name="inherit_id" ref="product.product_normal_form_view"/>
+      <field name="arch" type="xml">
+        <notebook position="inside">
+          <page string="Piezas físicas">
+            <field name="total_m2_disponibles" readonly="1"/>
+            <field name="pieza_ids">
+              <tree editable="bottom">
+                <field name="codigo_unico"/>
+                <field name="area_m2"/>
+                <field name="ubicacion_id"/>
+                <field name="estado_operativo"/>
+              </tree>
+            </field>
+          </page>
+        </notebook>
+      </field>
+    </record>
+  </odoo>
+  

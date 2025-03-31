@@ -1,0 +1,11 @@
+<odoo>
+    <record id="seq_stock_pieza" model="ir.sequence">
+      <field name="name">Secuencia Pieza</field>
+      <field name="code">stock.pieza</field>
+      <field name="prefix">SM</field>
+      <field name="padding">6</field>
+      <field name="number_next">1</field>
+      <field name="number_increment">1</field>
+    </record>
+  </odoo>
+  
